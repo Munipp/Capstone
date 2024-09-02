@@ -1,0 +1,38 @@
+package com.example.capstone.history
+
+import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewGroup
+import android.widget.ImageView
+import android.widget.TextView
+import androidx.recyclerview.widget.RecyclerView
+import com.example.capstone.R
+import com.example.capstone.WordResult
+
+class HistoryAdapter(
+    private var items: List<WordResult>,
+    private val onDeleteClicked: (WordResult) -> Unit
+) : RecyclerView.Adapter<HistoryAdapter.HistoryViewHolder>() {
+    inner class HistoryViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+        private val wordTextView: TextView = itemView.findViewById(R.id.tv_word)
+        private val deleteIcon: ImageView = itemView.findViewById(R.id.ic_delete)
+        fun bind(item: WordResult) {
+            wordTextView.text = item.word
+            deleteIcon.setOnClickListener {
+                onDeleteClicked(item)
+            }
+        }
+    }
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): HistoryViewHolder {
+        val view = LayoutInflater.from(parent.context).inflate(R.layout.item_history, parent, false)
+        return HistoryViewHolder(view)
+    }
+    override fun onBindViewHolder(holder: HistoryViewHolder, position: Int) {
+        holder.bind(items[position])
+    }
+    override fun getItemCount(): Int = items.size
+    fun updateData(newItems: List<WordResult>) {
+        items = newItems
+        notifyDataSetChanged()
+    }
+}
