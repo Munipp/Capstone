@@ -16,4 +16,8 @@ object Constants {
     const val TOAST_EMPTY_PASSWORD = "Password cannot be empty"
     const val TOAST_INVALID_CREDENTIALS = "Invalid username or password"
     const val TOAST_REGISTRATION_SUCCESS = "Registration successful"
+    const val PREFERENCE = "AppPreferences"
+    const val SEARCHRESULT = "searchResults"
+    const val CURRENTWORD = "currentWord"
+    const val CURRENTMEANING = "currentMeanings"
 }

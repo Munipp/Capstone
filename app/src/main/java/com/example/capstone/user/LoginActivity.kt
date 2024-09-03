@@ -35,7 +35,7 @@ class LoginActivity : AppCompatActivity() {
 
                 val intent = Intent(this, MainActivity::class.java)
                 startActivity(intent)
-                finish() // Close LoginActivity
+                finish()
             } else {
                 Toast.makeText(this, Constants.TOAST_INVALID_CREDENTIALS, Toast.LENGTH_SHORT).show()
             }

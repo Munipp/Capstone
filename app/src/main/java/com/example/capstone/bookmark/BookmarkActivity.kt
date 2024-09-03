@@ -4,7 +4,9 @@ import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
 import android.os.Bundle
+import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.Observer
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.capstone.history.HistoryActivity
@@ -12,24 +14,23 @@ import com.example.capstone.MainActivity
 import com.example.capstone.R
 import com.example.capstone.user.SettingsActivity
 import com.google.android.material.bottomnavigation.BottomNavigationView
-import com.google.gson.Gson
 
 class BookmarkActivity : AppCompatActivity() {
 
     private lateinit var recyclerView: RecyclerView
     private lateinit var bookmarkAdapter: BookmarkAdapter
     private lateinit var sharedPreferences: SharedPreferences
-    private val gson = Gson()
+    private val bookmarkViewModel: BookmarkViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_bookmark)
 
         sharedPreferences = getSharedPreferences("AppPreferences", Context.MODE_PRIVATE)
-        val bookmarks = loadBookmarks()
+        bookmarkViewModel.initializeSharedPreferences(sharedPreferences)
 
         recyclerView = findViewById(R.id.recyclerViewBookmarks)
-        bookmarkAdapter = BookmarkAdapter(bookmarks, ::removeBookmark)
+        bookmarkAdapter = BookmarkAdapter(emptyList(), ::removeBookmark)
 
         recyclerView.apply {
             layoutManager = LinearLayoutManager(this@BookmarkActivity)
@@ -56,21 +57,13 @@ class BookmarkActivity : AppCompatActivity() {
             }
         }
         bottomNavigationView.menu.findItem(R.id.nav_bookmark).isChecked = true
+
+        bookmarkViewModel.bookmarks.observe(this, Observer { bookmarks ->
+            bookmarkAdapter.updateData(bookmarks)
+        })
     }
-    private fun loadBookmarks(): List<String> {
-        val bookmarks = mutableListOf<String>()
-        val allEntries = sharedPreferences.all
-        for ((key, value) in allEntries) {
-            if (key.startsWith("isBookmarked_") && value == true) {
-                bookmarks.add(key.removePrefix("isBookmarked_"))
-            }
-        }
-        return bookmarks
-    }
+
     private fun removeBookmark(word: String) {
-        val editor = sharedPreferences.edit()
-        editor.remove("isBookmarked_$word")
-        editor.apply()
-        bookmarkAdapter.updateData(loadBookmarks())
+        bookmarkViewModel.removeBookmark(word)
     }
 }

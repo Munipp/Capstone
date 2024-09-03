@@ -5,10 +5,6 @@ import android.content.Intent
 import android.content.SharedPreferences
 import android.os.Bundle
 import android.text.InputType
-import android.widget.Button
-import android.widget.EditText
-import android.widget.ImageView
-import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
@@ -20,22 +16,22 @@ import com.example.capstone.R
 import com.example.capstone.bookmark.BookmarkActivity
 import com.example.capstone.history.HistoryActivity
 import com.example.capstone.Constants
+import com.example.capstone.databinding.ActivitySettingsBinding
 import com.google.android.material.bottomnavigation.BottomNavigationView
 
 class SettingsActivity : AppCompatActivity() {
 
-    private lateinit var etPassword: EditText
-    private lateinit var icEye: ImageView
-    private var isPasswordVisible = false
+    private lateinit var binding: ActivitySettingsBinding
     private lateinit var sharedPreferences: SharedPreferences
-    private lateinit var btnChangePassword: Button
-    private lateinit var btnLogout: Button
+    private var isPasswordVisible = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
-        setContentView(R.layout.activity_settings)
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
+        binding = ActivitySettingsBinding.inflate(layoutInflater)
+        setContentView(binding.root)
+
+        ViewCompat.setOnApplyWindowInsetsListener(binding.main) { v, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
             insets
@@ -43,32 +39,28 @@ class SettingsActivity : AppCompatActivity() {
 
         sharedPreferences = getSharedPreferences(Constants.PREF_NAME, Context.MODE_PRIVATE)
 
-        etPassword = findViewById(R.id.et_password)
-        icEye = findViewById(R.id.ic_eye)
-        btnChangePassword = findViewById(R.id.btn_change_password)
-        btnLogout = findViewById(R.id.btn_logout)
-
+        // Set username
         val username = sharedPreferences.getString(Constants.PREF_KEY_USERNAME, "Guest")
-        findViewById<TextView>(R.id.tv_username).text = "${Constants.PREF_KEY_USERNAME_DISPLAY}: $username"
+        binding.tvUsername.text = "${Constants.PREF_KEY_USERNAME_DISPLAY}: $username"
 
-        icEye.setOnClickListener {
+        binding.icEye.setOnClickListener {
             isPasswordVisible = !isPasswordVisible
             if (isPasswordVisible) {
-                etPassword.inputType = InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD
-                icEye.setImageResource(R.drawable.ic_eye)
+                binding.etPassword.inputType = InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD
+                binding.icEye.setImageResource(R.drawable.ic_eye)
             } else {
-                etPassword.inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_PASSWORD
-                icEye.setImageResource(R.drawable.ic_closed_eye)
+                binding.etPassword.inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_PASSWORD
+                binding.icEye.setImageResource(R.drawable.ic_closed_eye)
             }
-            etPassword.setSelection(etPassword.text.length)
+            binding.etPassword.setSelection(binding.etPassword.text.length)
         }
 
-        etPassword.addTextChangedListener {
-            icEye.isEnabled = it?.isNotEmpty() == true
+        binding.etPassword.addTextChangedListener {
+            binding.icEye.isEnabled = it?.isNotEmpty() == true
         }
 
-        btnChangePassword.setOnClickListener {
-            val newPassword = etPassword.text.toString()
+        binding.btnChangePassword.setOnClickListener {
+            val newPassword = binding.etPassword.text.toString()
             if (newPassword.isNotEmpty()) {
                 val editor = sharedPreferences.edit()
                 editor.putString(Constants.PREF_KEY_PASSWORD_HASH, hashPassword(newPassword))
@@ -84,26 +76,8 @@ class SettingsActivity : AppCompatActivity() {
             }
         }
 
-        btnLogout.setOnClickListener {
-            val editor = sharedPreferences.edit()
-            val currentPassword = etPassword.text.toString()
-            if (currentPassword.isNotEmpty()) {
-                editor.putString(Constants.PREF_KEY_PASSWORD_HASH, hashPassword(currentPassword))
-            }
-            editor.remove(Constants.PREF_KEY_LOGGED_IN_USER)
-            editor.apply()
-
-            val intent = Intent(this, LoginActivity::class.java)
-            startActivity(intent)
-            finish()
-        }
-
-        setupBottomNavigationView()
-    }
-
-    private fun setupBottomNavigationView() {
-        val bottomNavigationView: BottomNavigationView = findViewById(R.id.bottom_navigation)
-        bottomNavigationView.setOnItemSelectedListener { item ->
+        val bottomNavigationView: BottomNavigationView = binding.bottomNavigation
+        bottomNavigationView.setOnNavigationItemSelectedListener { item ->
             when (item.itemId) {
                 R.id.nav_home -> {
                     startActivity(Intent(this, MainActivity::class.java))
@@ -117,10 +91,28 @@ class SettingsActivity : AppCompatActivity() {
                     startActivity(Intent(this, BookmarkActivity::class.java))
                     true
                 }
+                R.id.nav_settings -> true
                 else -> false
             }
         }
         bottomNavigationView.menu.findItem(R.id.nav_settings).isChecked = true
+
+        binding.btnLogout.setOnClickListener {
+            val editor = sharedPreferences.edit()
+
+            val currentPassword = binding.etPassword.text.toString()
+            if (currentPassword.isNotEmpty()) {
+                editor.putString(Constants.PREF_KEY_PASSWORD_HASH, hashPassword(currentPassword))
+            }
+
+            editor.remove(Constants.PREF_KEY_LOGGED_IN_USER)
+
+            editor.apply()
+
+            val intent = Intent(this, LoginActivity::class.java)
+            startActivity(intent)
+            finish()
+        }
     }
 
     private fun hashPassword(password: String): String {
