@@ -43,15 +43,13 @@ class SettingsActivity : AppCompatActivity() {
 
         sharedPreferences = getSharedPreferences(Constants.PREF_NAME, Context.MODE_PRIVATE)
 
-        val bottomNavigationView: BottomNavigationView = findViewById(R.id.bottom_navigation)
-        val tvUsername: TextView = findViewById(R.id.tv_username)
         etPassword = findViewById(R.id.et_password)
         icEye = findViewById(R.id.ic_eye)
         btnChangePassword = findViewById(R.id.btn_change_password)
         btnLogout = findViewById(R.id.btn_logout)
 
         val username = sharedPreferences.getString(Constants.PREF_KEY_USERNAME, "Guest")
-        tvUsername.text = "${Constants.PREF_KEY_USERNAME_DISPLAY}: $username"
+        findViewById<TextView>(R.id.tv_username).text = "${Constants.PREF_KEY_USERNAME_DISPLAY}: $username"
 
         icEye.setOnClickListener {
             isPasswordVisible = !isPasswordVisible
@@ -86,37 +84,13 @@ class SettingsActivity : AppCompatActivity() {
             }
         }
 
-        bottomNavigationView.setOnItemSelectedListener { item ->
-            when (item.itemId) {
-                R.id.nav_home -> {
-                    val intent = Intent(this, MainActivity::class.java)
-                    startActivity(intent)
-                    true
-                }
-                R.id.nav_history -> {
-                    val intent = Intent(this, HistoryActivity::class.java)
-                    startActivity(intent)
-                    true
-                }
-                R.id.nav_bookmark -> {
-                    val intent = Intent(this, BookmarkActivity::class.java)
-                    startActivity(intent)
-                    true
-                }
-                else -> false
-            }
-        }
-
         btnLogout.setOnClickListener {
             val editor = sharedPreferences.edit()
-
             val currentPassword = etPassword.text.toString()
             if (currentPassword.isNotEmpty()) {
                 editor.putString(Constants.PREF_KEY_PASSWORD_HASH, hashPassword(currentPassword))
             }
-
             editor.remove(Constants.PREF_KEY_LOGGED_IN_USER)
-
             editor.apply()
 
             val intent = Intent(this, LoginActivity::class.java)
@@ -124,7 +98,29 @@ class SettingsActivity : AppCompatActivity() {
             finish()
         }
 
+        setupBottomNavigationView()
+    }
 
+    private fun setupBottomNavigationView() {
+        val bottomNavigationView: BottomNavigationView = findViewById(R.id.bottom_navigation)
+        bottomNavigationView.setOnItemSelectedListener { item ->
+            when (item.itemId) {
+                R.id.nav_home -> {
+                    startActivity(Intent(this, MainActivity::class.java))
+                    true
+                }
+                R.id.nav_history -> {
+                    startActivity(Intent(this, HistoryActivity::class.java))
+                    true
+                }
+                R.id.nav_bookmark -> {
+                    startActivity(Intent(this, BookmarkActivity::class.java))
+                    true
+                }
+                else -> false
+            }
+        }
+        bottomNavigationView.menu.findItem(R.id.nav_settings).isChecked = true
     }
 
     private fun hashPassword(password: String): String {
