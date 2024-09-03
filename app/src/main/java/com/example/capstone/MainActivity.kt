@@ -33,7 +33,7 @@ class MainActivity : AppCompatActivity() {
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        sharedPreferences = getSharedPreferences("AppPreferences", Context.MODE_PRIVATE)
+        sharedPreferences = getSharedPreferences(Constants.PREF_NAME, Context.MODE_PRIVATE)
         restoreSearchResults()
 
         setupRecyclerView()
